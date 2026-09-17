@@ -15,13 +15,14 @@ public class AuthController : ControllerBase
     private readonly SalesforceSettings _settings;
     private readonly HttpClient _httpClient;
 
-    public AuthController(
-        SalesforceAuthService authService,
-        IOptions<SalesforceSettings> settings)
+    private readonly IConfiguration _configuration;
+
+    public AuthController(SalesforceAuthService authService, IConfiguration configuration, IOptions<SalesforceSettings> options, IHttpClientFactory httpClientFactory)
     {
         _authService = authService;
-        _settings = settings.Value;
-        _httpClient = new HttpClient();
+        _configuration = configuration;
+        _settings = options.Value;
+        _httpClient = httpClientFactory.CreateClient();
     }
 
     [HttpGet("login")]
@@ -113,7 +114,10 @@ public class AuthController : ControllerBase
             "SalesforceInstanceUrl",
             instanceUrl ?? "");
 
-        return Redirect("https://localhost:4200/?login=success");
+        var frontendUrl = _configuration["FrontendUrl"]
+                  ?? "https://localhost:4200";
+
+        return Redirect($"{frontendUrl}/?login=success");
     }
 
     [HttpGet("status")]
