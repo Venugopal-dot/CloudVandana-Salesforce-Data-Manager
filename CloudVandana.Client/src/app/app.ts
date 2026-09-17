@@ -324,10 +324,7 @@ export class App implements OnInit {
   // =====================================================
 
   login(): void {
-
-    window.location.href =
-      'https://localhost:7262/api/auth/login';
-
+    window.location.href = 'https://cloudvandana-salesforce-data-manager.onrender.com/api/auth/login';
   }
 
 

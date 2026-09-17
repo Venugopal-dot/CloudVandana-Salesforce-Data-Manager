@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class SalesforceService {
 
-  private apiUrl = 'https://localhost:7262/api/salesforce';
+  private apiUrl = 'https://cloudvandana-salesforce-data-manager.onrender.com/api/salesforce';
 
   constructor(private http: HttpClient) { }
 
@@ -53,7 +53,7 @@ export class SalesforceService {
   getAuthStatus(): Observable<any> {
 
     return this.http.get<any>(
-      'https://localhost:7262/api/auth/status',
+      'https://cloudvandana-salesforce-data-manager.onrender.com/api/auth/status',
       {
         withCredentials: true
       }
