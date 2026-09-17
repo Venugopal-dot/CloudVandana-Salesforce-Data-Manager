@@ -1,0 +1,350 @@
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>Salesforce Data Manager</h1>
+      <p>Manage Salesforce records from one place</p>
+    </div>
+
+    <button class="login-button" (click)="login()">
+      Login with Salesforce
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+
+    <div class="object-selector">
+      <label for="object">Salesforce Object</label>
+
+      <select id="object" [(ngModel)]="selectedObject" (change)="objectChanged()">
+
+        @for (object of objects; track object) {
+        <option [value]="object">
+          {{ object }}
+        </option>
+        }
+
+      </select>
+    </div>
+
+    <button class="create-button" (click)="openCreateForm()">
+
+      + Create {{ selectedObject }}
+
+    </button>
+
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+  <div class="loading">
+    <div class="spinner"></div>
+    <span>Loading Salesforce records...</span>
+  </div>
+  }
+
+  <!-- Error -->
+  @if (errorMessage) {
+  <div class="error">
+    {{ errorMessage }}
+  </div>
+  }
+
+  <!-- Records -->
+  @if (!loading && records.length > 0) {
+
+  <div class="table-card">
+
+    <div class="table-header">
+      <div>
+        <h2>{{ selectedObject }} Records</h2>
+        <span>{{ records.length }} records displayed</span>
+      </div>
+    </div>
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+          <tr>
+
+            @for (field of fields; track field) {
+            <th>{{ field }}</th>
+            }
+
+            <th class="actions-header">
+              Actions
+            </th>
+
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @for (record of records; track record.Id) {
+
+          <tr>
+
+            @for (field of fields; track field) {
+
+            <td>
+              {{ record[field] }}
+            </td>
+
+            }
+
+            <td class="actions">
+
+              <button class="view-button" (click)="viewRecord(record)">
+                View
+              </button>
+
+              <button class="edit-button" (click)="editRecord(record)">
+                Edit
+              </button>
+
+              <button class="delete-button" (click)="deleteRecord(record)">
+                Delete
+              </button>
+
+            </td>
+
+          </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+
+    <button (click)="previousPage()" [disabled]="page === 1">
+
+      ← Previous
+
+    </button>
+
+    <span>
+      Page {{ page }}
+    </span>
+
+    <button (click)="nextPage()" [disabled]="!hasNextPage">
+
+      Next →
+
+    </button>
+
+  </div>
+
+  }
+
+  <!-- No records -->
+  @if (!loading && records.length === 0 && !errorMessage) {
+
+  <div class="no-records">
+
+    <h3>No records found</h3>
+
+    <p>
+      There are no {{ selectedObject }} records available.
+    </p>
+
+  </div>
+
+  }
+
+</div>
+
+
+<!-- View Modal -->
+@if (selectedRecord && !showCreateForm) {
+
+<div class="modal-backdrop">
+
+  <div class="modal">
+
+    <div class="modal-header">
+
+      <h2>
+        {{ selectedObject }} Details
+      </h2>
+
+      <button class="modal-close" (click)="selectedRecord = null">
+
+        ×
+
+      </button>
+
+    </div>
+
+    <div class="details">
+
+      @for (field of fields; track field) {
+
+      <div class="detail-row">
+
+        <strong>
+          {{ field }}
+        </strong>
+
+        <span>
+          {{ selectedRecord[field] }}
+        </span>
+
+      </div>
+
+      }
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button class="close-button" (click)="selectedRecord = null">
+
+        Close
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
+
+
+<!-- Create / Edit Modal -->
+@if (showCreateForm) {
+
+<div class="modal-backdrop">
+
+  <div class="modal">
+
+    <div class="modal-header">
+
+      <h2>
+
+        {{ editingRecordId ? 'Edit' : 'Create' }}
+        {{ selectedObject }}
+
+      </h2>
+
+      <button class="modal-close" (click)="showCreateForm = false">
+
+        ×
+
+      </button>
+
+    </div>
+
+
+    <div class="form">
+
+      @for (field of fields; track field) {
+
+      @if (field !== 'Id') {
+
+      <div class="form-group">
+
+        <label>
+
+          {{ field }}
+
+          @if (
+          fieldConfig[selectedObject]?.[field]?.required
+          ) {
+
+          <span class="required">*</span>
+
+          }
+
+        </label>
+
+
+        @if (
+        fieldConfig[selectedObject]?.[field]?.type === 'select'
+        ) {
+
+        <select [(ngModel)]="createFields[field]" [required]="
+                    fieldConfig[selectedObject]?.[field]?.required || false
+                  ">
+
+          <option value="">
+            -- Select {{ field }} --
+          </option>
+
+          @for (
+          option of fieldConfig[selectedObject]?.[field]?.options || [];
+          track option
+          ) {
+
+          <option [value]="option">
+            {{ option }}
+          </option>
+
+          }
+
+        </select>
+
+        } @else {
+
+        <input [type]="
+                    fieldConfig[selectedObject]?.[field]?.type || 'text'
+                  " [(ngModel)]="createFields[field]" [required]="
+                    fieldConfig[selectedObject]?.[field]?.required || false
+                  " [placeholder]="'Enter ' + field" />
+
+        }
+
+      </div>
+
+      }
+
+      }
+
+    </div>
+
+
+    <div class="form-actions">
+
+      @if (editingRecordId) {
+
+      <button class="create-button" (click)="updateRecord()" [disabled]="isSaving">
+
+        {{ isSaving ? 'Updating...' : 'Update' }}
+
+      </button>
+
+      } @else {
+
+      <button class="create-button" (click)="createRecord()" [disabled]="isSaving">
+
+        {{ isSaving ? 'Creating...' : 'Create' }}
+
+      </button>
+
+      }
+
+      <button class="close-button" (click)="showCreateForm = false">
+
+        Cancel
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+}

@@ -1,0 +1,25 @@
+﻿# Visual Studio
+.vs/
+*.user
+*.suo
+
+# .NET
+**/bin/
+**/obj/
+
+# Angular / Node
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Environment / local configuration
+.env
+.env.*
+!.env.example
+
+# Local Salesforce secrets
+appsettings.Development.json
+
+# OS files
+.DS_Store
+Thumbs.db
